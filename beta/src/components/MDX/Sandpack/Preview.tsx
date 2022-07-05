@@ -9,11 +9,13 @@ import cn from 'classnames';
 
 import {Error} from './Error';
 import {computeViewportSize, generateRandomId} from './utils';
+import type {LintDiagnostic} from './utils';
 
 type CustomPreviewProps = {
   className?: string;
-  customStyle: Record<string, unknown>;
+  customStyle?: Record<string, unknown>;
   isExpanded: boolean;
+  lintErrors: LintDiagnostic;
 };
 
 function useDebounced(value: any): any {
@@ -32,6 +34,7 @@ export function Preview({
   customStyle,
   isExpanded,
   className,
+  lintErrors,
 }: CustomPreviewProps) {
   const {sandpack, listen} = useSandpack();
   const [isReady, setIsReady] = React.useState(false);
@@ -46,6 +49,7 @@ export function Preview({
     errorScreenRegisteredRef,
     openInCSBRegisteredRef,
     loadingScreenRegisteredRef,
+    status,
   } = sandpack;
 
   if (
@@ -55,6 +59,19 @@ export function Preview({
     // Work around a noisy internal error.
     rawError = null;
   }
+
+  if (lintErrors.length > 0) {
+    if (rawError == null || rawError.title === 'Runtime Exception') {
+      // When there's a lint error, show it -- even over a runtime error.
+      // (However, when there's a build error, we keep showing the build one.)
+      const {line, column, message} = lintErrors[0];
+      rawError = {
+        title: 'Lint Error',
+        message: `${line}:${column} - ${message}`,
+      };
+    }
+  }
+
   // It changes too fast, causing flicker.
   const error = useDebounced(rawError);
 
@@ -67,29 +84,37 @@ export function Preview({
   errorScreenRegisteredRef.current = true;
   loadingScreenRegisteredRef.current = true;
 
-  React.useEffect(() => {
+  React.useEffect(function createBundler() {
     const iframeElement = iframeRef.current!;
     registerBundler(iframeElement, clientId.current);
 
-    const unsub = listen((message: any) => {
-      if (message.type === 'resize') {
-        setComputedAutoHeight(message.height);
-      } else if (message.type === 'start') {
-        if (message.firstLoad) {
-          setIsReady(false);
-        }
-      } else if (message.type === 'test') {
-        // Does it make sense that we're listening to "test" event?
-        // Not really. Does it cause less flicker than "done"? Yes.
-        setIsReady(true);
-      }
-    }, clientId.current);
-
     return () => {
-      unsub();
       unregisterBundler(clientId.current);
     };
   }, []);
+
+  React.useEffect(
+    function bundlerListener() {
+      const unsubscribe = listen((message: any) => {
+        if (message.type === 'resize') {
+          setComputedAutoHeight(message.height);
+        } else if (message.type === 'start') {
+          if (message.firstLoad) {
+            setIsReady(false);
+          }
+        } else if (message.type === 'done') {
+          setIsReady(true);
+        }
+      }, clientId.current);
+
+      return () => {
+        setIsReady(false);
+        setComputedAutoHeight(null);
+        unsubscribe();
+      };
+    },
+    [status === 'idle']
+  );
 
   const viewportStyle = computeViewportSize('auto', 'portrait');
   const overrideStyle = error
@@ -126,13 +151,11 @@ export function Preview({
       }}>
       <div
         className={cn(
-          'p-0 sm:p-2 md:p-4 lg:p-8 bg-card dark:bg-wash-dark h-full relative rounded-b-lg lg:rounded-b-none',
+          'p-0 sm:p-2 md:p-4 lg:p-8 md:bg-card md:dark:bg-wash-dark h-full relative md:rounded-b-lg lg:rounded-b-none',
           // Allow content to be scrolled if it's too high to fit.
           // Note we don't want this in the expanded state
           // because it breaks position: sticky (and isn't needed anyway).
-          // We also don't want this for errors because they expand
-          // parent and making them scrollable is confusing.
-          !isExpanded && !error && isReady ? 'overflow-auto' : null
+          !isExpanded && (error || isReady) ? 'overflow-auto' : null
         )}>
         <div
           style={{
@@ -147,7 +170,7 @@ export function Preview({
           <iframe
             ref={iframeRef}
             className={cn(
-              'rounded-t-none bg-white shadow-md sm:rounded-lg w-full max-w-full',
+              'rounded-t-none bg-white md:shadow-md sm:rounded-lg w-full max-w-full',
               // We can't *actually* hide content because that would
               // break calculating the computed height in the iframe
               // (which we're using for autosizing). This is noticeable
@@ -175,7 +198,10 @@ export function Preview({
             <Error error={error} />
           </div>
         )}
-        <LoadingOverlay clientId={clientId.current} />
+        <LoadingOverlay
+          clientId={clientId.current}
+          loading={!isReady && iframeComputedHeight === null}
+        />
       </div>
     </div>
   );

@@ -72,9 +72,9 @@ Create React App은 React를 시작하기에 좋지만, 더 가벼운 툴체인�
 
 직접 툴체인을 생성 및 설정하고 싶다면, 자바스크립트 빌드 툴체인의 구성을 고려하세요.
 
-* [Yarn](https://yarnpkg.com/)과 [npm](https://www.npmjs.com/)같은 **패키지 매니저**를 사용하여 서드 파티 패키지를 설치, 업데이트 및 관리할 수 있습니다.
-* [Webpack](https://webpack.js.org/), [Snowpack](https://www.snowpack.dev/), [Parcel](https://parceljs.org/)과 같은 **번들러**를 사용하면 모듈식 코드를 작성하고 이를 작은 패키지로 함께 번들링 하여 로드 시간을 최적화할 수 있습니다
-* [Babel](https://babeljs.io/)과 같은 **컴파일러**는 이전 브라우저에서도 최신 자바스크립트 코드를 작동시킵니다.
+* A **package manager**—lets you install, update and manage third-party packages. [Yarn](https://yarnpkg.com/) and [npm](https://www.npmjs.com/) are two popular package managers.
+* A **bundler**—lets you write modular code and bundle it together into small packages to optimize load time. [Webpack](https://webpack.js.org/), [Snowpack](https://www.snowpack.dev/), [Parcel](https://parceljs.org/) are several popular bundlers.
+* A **compiler**—lets you write modern JavaScript code that still works in older browsers. [Babel](https://babeljs.io/) is one such example.
 
 대규모 프로젝트에서는 단일 저장소에서 여러 패키지를 관리하는 툴이 필요할 수도 있습니다. [Nx](https://nx.dev/react)가 이러한 툴의 예입니다.
 

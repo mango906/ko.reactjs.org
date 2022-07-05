@@ -20,6 +20,7 @@ import {IconChevron} from 'components/Icon/IconChevron';
 import {NavigationBar} from './NavigationBar';
 import {Preview} from './Preview';
 import {CustomTheme} from './Themes';
+import {useSandpackLint} from './utils';
 
 export function CustomPreset({
   isSingleFile,
@@ -32,6 +33,7 @@ export function CustomPreset({
   devToolsLoaded: boolean;
   onDevToolsLoad: () => void;
 }) {
+  const {lintErrors, onLint} = useSandpackLint();
   const lineCountRef = React.useRef<{[key: string]: number}>({});
   const containerRef = React.useRef<HTMLDivElement>(null);
   const {sandpack} = useSandpack();
@@ -44,13 +46,6 @@ export function CustomPreset({
   }
   const lineCount = lineCountRef.current[activePath];
   const isExpandable = lineCount > 16 || isExpanded;
-  const editorHeight = isExpandable ? lineCount * 24 + 24 : 'auto'; // shown lines * line height (24px)
-  const getHeight = () => {
-    if (!isExpandable) {
-      return editorHeight;
-    }
-    return isExpanded ? editorHeight : 406;
-  };
 
   return (
     <>
@@ -63,31 +58,21 @@ export function CustomPreset({
             ref={sandpack.lazyAnchorRef}
             className={cn(
               'sp-layout sp-custom-layout',
-              showDevTools && devToolsLoaded && 'sp-layout-devtools'
-            )}
-            style={{
-              // Prevent it from collapsing below the initial (non-loaded) height.
-              // There has to be some better way to do this...
-              minHeight: 216,
-            }}>
+              showDevTools && devToolsLoaded && 'sp-layout-devtools',
+              isExpanded && 'sp-layout-expanded'
+            )}>
             <SandpackCodeEditor
-              customStyle={{
-                height: getHeight(),
-                maxHeight: isExpanded ? '' : 406,
-              }}
               showLineNumbers
               showInlineErrors
               showTabs={false}
+              showRunButton={false}
+              extensions={[onLint]}
             />
             <Preview
-              isExpanded={isExpanded}
               className="order-last xl:order-2"
-              customStyle={{
-                height: getHeight(),
-                maxHeight: isExpanded ? '' : 406,
-              }}
+              isExpanded={isExpanded}
+              lintErrors={lintErrors}
             />
-
             {isExpandable && (
               <button
                 translate="yes"

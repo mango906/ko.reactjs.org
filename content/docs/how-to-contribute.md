@@ -70,7 +70,7 @@ Public API를 변경하거나 구현을 간단하게 변경하려 할 때 [이�
 
 풀 리퀘스트를 처음 해보시나요? 무료 영상 시리즈를 통해 다음과 같이 기여하는 방법을 배울 수도 있습니다.
 
-**[GitHub에서 오픈 소스 프로젝트에 기여하는 방법](https://app.egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github)**
+**[GitHub에서 오픈 소스 프로젝트에 기여하는 방법](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github)**
 
 처음 발을 디딜 때 기여 과정에 익숙해질 수 있도록 비교적 영향력이 적은 버그를 포함하는 **[good first issues](https://github.com/facebook/react/issues?q=is:open+is:issue+label:"good+first+issue")** 목록은 기여 입문에 최적입니다.
 
